@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import logoImg from "./assets/logo.png";
 
 class MyGame extends Phaser.Scene {
   constructor() {
@@ -7,7 +6,10 @@ class MyGame extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("tiles", "assets/tilemaps/iso/iso-64x64-outside.png");
+    this.load.image(
+      "tiles",
+      "assets/tilemaps/IsometricAssetPack/256x192 Tiles.png"
+    );
   }
 
   create() {
@@ -16,40 +18,18 @@ class MyGame extends Phaser.Scene {
     const mapData = new Phaser.Tilemaps.MapData({
       width: mapSize,
       height: mapSize,
-      tileWidth: 64,
-      tileHeight: 32,
+      tileWidth: 256,
+      tileHeight: 192,
       orientation: Phaser.Tilemaps.Orientation.ISOMETRIC,
       format: Phaser.Tilemaps.Formats.ARRAY_2D,
     });
 
     const map = new Phaser.Tilemaps.Tilemap(this, mapData);
 
-    const tileset = map.addTilesetImage("iso-64x64-outside", "tiles");
+    const tileset = map.addTilesetImage("tiles", "tiles");
 
-    const layer = map.createBlankLayer("layer", tileset, 350, 200);
+    const layer = map.createBlankLayer("layer", tileset, 0, 0);
 
-    // const data = [
-    //   [11, 11, 12, 13, 14, 15, 16, 10, 11, 12],
-    //   [13, 11, 10, 12, 12, 15, 16, 10, 16, 10],
-    //   [12, 10, 16, 13, 14, 15, 16, 16, 13, 12],
-    //   [10, 11, 12, 13, 14, 15, 16, 10, 11, 12],
-    //   [13, 11, 10, 12, 12, 15, 16, 10, 16, 10],
-    //   [12, 10, 16, 13, 14, 15, 16, 16, 13, 12],
-    //   [10, 11, 12, 13, 14, 15, 16, 10, 11, 12],
-    //   [13, 11, 10, 12, 12, 15, 16, 10, 16, 10],
-    //   [12, 10, 16, 13, 14, 15, 16, 16, 13, 12],
-    //   [10, 11, 12, 13, 14, 15, 16, 10, 11, 12],
-    // ];
-
-    // let y = 0;
-
-    // data.forEach((row) => {
-    //   row.forEach((tile, x) => {
-    //     layer.putTileAt(tile, x, y);
-    //   });
-
-    //   y++;
-    // });
     const heightMap = getNewHeighMap(mapSize);
     heightMap.forEach((item, index) => {
       const x = index % mapSize;
@@ -57,30 +37,65 @@ class MyGame extends Phaser.Scene {
 
       let tileTexture;
       if (item < 10) {
-        tileTexture = 175;
+        tileTexture = 1;
       } else if (item < 50) {
-        tileTexture = 11;
+        tileTexture = 2;
       } else if (item < 75) {
-        tileTexture = 78;
+        tileTexture = 3;
       } else if (item < 100) {
-        tileTexture = 105;
+        tileTexture = 4;
       } else {
-        tileTexture = 105;
+        tileTexture = 5;
       }
       layer.putTileAt(tileTexture, x, y);
     });
-    console.log(heightMap);
+
+    const camera = this.cameras.main;
+    let cameraDragStartX;
+    let cameraDragStartY;
+
+    this.input.on("pointerdown", () => {
+      cameraDragStartX = camera.scrollX;
+      cameraDragStartY = camera.scrollY;
+    });
+
+    this.input.on("pointermove", (pointer) => {
+      if (pointer.isDown) {
+        camera.scrollX =
+          cameraDragStartX + (pointer.downX - pointer.x) / camera.zoom;
+        camera.scrollY =
+          cameraDragStartY + (pointer.downY - pointer.y) / camera.zoom;
+      }
+    });
+
+    this.input.on("wheel", (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+      // Get the current world point under pointer.
+      const worldPoint = camera.getWorldPoint(pointer.x, pointer.y);
+      const newZoom = camera.zoom - camera.zoom * 0.001 * deltaY;
+      camera.zoom = Phaser.Math.Clamp(newZoom, 0.25, 2);
+
+      // Update camera matrix, so `getWorldPoint` returns zoom-adjusted coordinates.
+      camera.preRender();
+      const newWorldPoint = camera.getWorldPoint(pointer.x, pointer.y);
+      // Scroll the camera to keep the pointer under the same world point.
+      camera.scrollX -= newWorldPoint.x - worldPoint.x;
+      camera.scrollY -= newWorldPoint.y - worldPoint.y;
+    });
   }
+  update(time, delta) {}
 }
 
 const config = {
   type: Phaser.AUTO,
   width: 800,
   height: 600,
+  zoom: 1,
   backgroundColor: "#2d2d2d",
   parent: "phaser-example",
-  pixelArt: true,
   scene: MyGame,
+  scale: {
+    autoCenter: Phaser.Scale.Center.CENTER_BOTH,
+  },
 };
 
 const game = new Phaser.Game(config);

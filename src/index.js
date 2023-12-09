@@ -13,22 +13,22 @@ class MyGame extends Phaser.Scene {
   }
 
   create() {
-    const sizeFactor = 4;
+    const sizeFactor = 5;
     const mapSize = Math.pow(2, sizeFactor) + 1;
     const mapData = new Phaser.Tilemaps.MapData({
       width: mapSize,
       height: mapSize,
       tileWidth: 256,
-      tileHeight: 192,
+      tileHeight: 128,
       orientation: Phaser.Tilemaps.Orientation.ISOMETRIC,
       format: Phaser.Tilemaps.Formats.ARRAY_2D,
     });
 
     const map = new Phaser.Tilemaps.Tilemap(this, mapData);
 
-    const tileset = map.addTilesetImage("tiles", "tiles");
+    const tileset = map.addTilesetImage("tiles", "tiles", 256, 192);
 
-    const layer = map.createBlankLayer("layer", tileset, 0, 0);
+    const layer = map.createBlankLayer("layer", tileset, 700, 0);
 
     const heightMap = getNewHeighMap(mapSize);
     heightMap.forEach((item, index) => {
@@ -36,16 +36,18 @@ class MyGame extends Phaser.Scene {
       const y = Math.floor(index / mapSize);
 
       let tileTexture;
-      if (item < 10) {
+      if (item < 20) {
+        tileTexture = 15;
+      } else if (item < 30) {
+        tileTexture = 25;
+      } else if (item < 80) {
         tileTexture = 1;
-      } else if (item < 50) {
-        tileTexture = 2;
-      } else if (item < 75) {
-        tileTexture = 3;
       } else if (item < 100) {
-        tileTexture = 4;
+        tileTexture = 44;
+      } else if (item < 120) {
+        tileTexture = 41;
       } else {
-        tileTexture = 5;
+        tileTexture = 53;
       }
       layer.putTileAt(tileTexture, x, y);
     });
@@ -87,8 +89,8 @@ class MyGame extends Phaser.Scene {
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 1500,
+  height: 768,
   zoom: 1,
   backgroundColor: "#2d2d2d",
   parent: "phaser-example",
@@ -102,7 +104,7 @@ const game = new Phaser.Game(config);
 
 const getNewHeighMap = (mapWidth) => {
   const minHeight = 1;
-  const maxHeight = 100;
+  const maxHeight = 140;
   const map = new Float32Array(mapWidth * mapWidth);
   const rowMax = mapWidth - 1;
 
